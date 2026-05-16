@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Eye, EyeOff, Film, LogIn, Clock } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
@@ -24,6 +24,7 @@ function saveAttemptData(count: number, lockedUntil: number | null) {
 
 const Login = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -70,7 +71,8 @@ const Login = () => {
       await loginAPI(email.trim().toLowerCase(), password);
       saveAttemptData(0, null);
 
-      navigate("/");
+      const from = (location.state as { from?: { pathname: string } })?.from?.pathname ?? "/";
+      navigate(from, { replace: true });
     } catch (err) {
       const data = getAttemptData();
       const newCount = data.count + 1;

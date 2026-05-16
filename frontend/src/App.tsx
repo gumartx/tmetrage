@@ -19,6 +19,7 @@ import UserLists from "./pages/UserLists.tsx";
 import UserListDetail from "./pages/UserListDetails.tsx";
 import UserRatedMovies from "./pages/UserRatedMovies.tsx";
 import UserCommentsPage from "./pages/UserCommentsPage.tsx";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
@@ -31,19 +32,19 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/movie/:id" element={<MovieDetail />} />
-          <Route path="/listas" element={<Lists />} />
-          <Route path="/listas/:id" element={<ListDetail />} />
-          <Route path="/perfil" element={<Profile />} />
           <Route path="/cadastro" element={<Register />} />
           <Route path="/login" element={<Login />} />
           <Route path="/esqueci-senha" element={<ForgotPassword />} />
-          <Route path="/usuario/:username" element={<UserProfile />} />
-          <Route path="/filmes-avaliados" element={<RatedMovies />} />
-          <Route path="/comentarios" element={<UserComments />} />
-          <Route path="/usuario/:username/filmes-avaliados" element={<UserRatedMovies />} />
-          <Route path="/usuario/:username/listas" element={<UserLists />} />
-          <Route path="/usuario/:username/listas/:id" element={<UserListDetail />} />
-          <Route path="/usuario/:username/comentarios" element={<UserCommentsPage />} />
+          <Route path="/perfil" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+          <Route path="/listas" element={<ProtectedRoute><Lists /></ProtectedRoute>} />
+          <Route path="/listas/:id" element={<ProtectedRoute><ListDetail /></ProtectedRoute>} />
+          <Route path="/filmes-avaliados" element={<ProtectedRoute><RatedMovies /></ProtectedRoute>} />
+          <Route path="/comentarios" element={<ProtectedRoute><UserComments /></ProtectedRoute>} />
+          <Route path="/usuario/:username" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
+          <Route path="/usuario/:username/filmes-avaliados" element={<ProtectedRoute><UserRatedMovies /></ProtectedRoute>} />
+          <Route path="/usuario/:username/listas" element={<ProtectedRoute><UserLists /></ProtectedRoute>} />
+          <Route path="/usuario/:username/listas/:id" element={<ProtectedRoute><UserListDetail /></ProtectedRoute>} />
+          <Route path="/usuario/:username/comentarios" element={<ProtectedRoute><UserCommentsPage /></ProtectedRoute>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
