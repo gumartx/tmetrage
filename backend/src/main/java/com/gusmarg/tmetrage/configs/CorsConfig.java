@@ -10,21 +10,20 @@ import java.util.List;
 @Configuration
 public class CorsConfig {
 
-    @Bean
-    CorsFilter corsFilter() {
+	@Bean
+	CorsFilter corsFilter() {
 
-        CorsConfiguration config = new CorsConfiguration();
+		CorsConfiguration config = new CorsConfiguration();
 
-        config.setAllowCredentials(true);
-        config.setAllowedOrigins(List.of("http://localhost:3001"));
-        config.setAllowedHeaders(List.of("*"));
-        config.setAllowedMethods(List.of("GET","POST","PUT","DELETE","OPTIONS"));
+		config.setAllowCredentials(true);
+		config.setAllowedOrigins(List.of("http://localhost:3001", "http://localhost:5173", "https://tmetrage.netlify.app"));
+		config.setAllowedHeaders(List.of("*"));
+		config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
 
-        UrlBasedCorsConfigurationSource source =
-                new UrlBasedCorsConfigurationSource();
+		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
 
-        source.registerCorsConfiguration("/**", config);
+		source.registerCorsConfiguration("/**", config);
 
-        return new CorsFilter(source);
-    }
+		return new CorsFilter(source);
+	}
 }
