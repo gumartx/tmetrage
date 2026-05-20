@@ -6,6 +6,10 @@ import org.springframework.web.client.RestTemplate;
 
 import com.gusmarg.tmetrage.dto.MovieDTO;
 
+import lombok.extern.slf4j.Slf4j;
+import tools.jackson.databind.ObjectMapper;
+
+@Slf4j
 @Service
 public class TMDBService {
 
@@ -16,11 +20,21 @@ public class TMDBService {
     private String apiUrl;
 
     private final RestTemplate restTemplate = new RestTemplate();
+    private final ObjectMapper objectMapper;
 
-    public MovieDTO getMovieById(Long movieId){
+    public TMDBService(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
 
+    public MovieDTO getMovieById(Long movieId) {
         String url = apiUrl + "/movie/" + movieId + "?api_key=" + apiKey + "&language=pt-BR";
-
-        return restTemplate.getForObject(url, MovieDTO.class);
+        String raw = restTemplate.getForObject(url, String.class);
+        log.info("TMDB raw response: {}", raw);
+        try {
+            return objectMapper.readValue(raw, MovieDTO.class);
+        } catch (Exception e) {
+            log.error("Erro ao desserializar MovieDTO: {}", e.getMessage());
+            throw new RuntimeException("Erro ao desserializar MovieDTO", e);
+        }
     }
 }
