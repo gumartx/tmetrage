@@ -98,6 +98,12 @@ const Profile = () => {
     try {
       const data = await getMyProfile();
       setProfile(data);
+      if (data.topGenres?.length) {
+        setTopGenres(data.topGenres);
+      }
+      if (data.favoriteMovies?.length) {
+        setFavorites(data.favoriteMovies);
+      }
     } catch (err) {
       toast.error(err.message || "Erro ao carregar perfil");
     } finally {
@@ -108,20 +114,6 @@ const Profile = () => {
   useEffect(() => {
     loadProfile();
   }, [loadProfile]);
-
-  const loadFavorites = useCallback(async () => {
-    if (!profile?.profileName) return;
-    try {
-      const list = await getFavoriteMovies(profile.profileName);
-      setFavorites(list);
-    } catch (err) {
-      console.error("Erro ao carregar favoritos:", err);
-    }
-  }, [profile?.profileName]);
-
-  useEffect(() => {
-    loadFavorites();
-  }, [loadFavorites]);
 
   useEffect(() => {
     if (!favDialogOpen) return;
@@ -169,42 +161,6 @@ const Profile = () => {
       toast.error(err.message || "Erro ao remover favorito");
     }
   };
-
-
-  useEffect(() => {
-    const loadGenresFromRatings = async () => {
-      try {
-        const ratings = await getUserRatings();
-
-        const movieIds = new Set<number>();
-
-        ratings.forEach((rating) => {
-          movieIds.add(rating.movieId);
-        });
-
-        const movies = await Promise.all([...movieIds].map((id) => getMovieDetails(id)));
-
-        const genreCount: Record<string, number> = {};
-
-        movies.forEach((movie) => {
-          movie.genres?.forEach((g) => {
-            genreCount[g.name] = (genreCount[g.name] || 0) + 1;
-          });
-        });
-
-        const sorted = Object.entries(genreCount)
-          .map(([name, count]) => ({ name, count }))
-          .sort((a, b) => b.count - a.count)
-          .slice(0, 5);
-
-        setTopGenres(sorted);
-      } catch (err) {
-        console.error(err);
-      }
-    };
-
-    loadGenresFromRatings();
-  }, []);
 
   useEffect(() => {
     if (!searchQuery.trim()) {
@@ -633,7 +589,7 @@ const Profile = () => {
             </div>
           ) : (
             <p className="text-sm text-muted-foreground">
-              Adicione filmes às suas listas para ver seus gêneros favoritos.
+              Avalie filmes para ver seus gêneros favoritos.
             </p>
           )}
         </div>

@@ -6,7 +6,9 @@ target/
 
 .env
 *.env
-application-prod.properties
+
+application.properties
+application-*.properties
 
 ### STS ###
 .apt_generated

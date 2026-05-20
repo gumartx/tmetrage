@@ -47,6 +47,9 @@ const UserProfile = () => {
       const data = await getUserProfile(username);
       setProfile(data);
       setIsFollowing(data.isFollowing);
+      if (data.topGenres?.length) {
+        setTopGenres(data.topGenres);
+      }
     } catch (err) {
       toast.error(err.message || "Erro ao carregar perfil");
     } finally {
@@ -73,38 +76,6 @@ const UserProfile = () => {
       .catch(() => setRecentComments([]));
   }, [username]);
 
-  useEffect(() => {
-    if (!profile?.ratings?.length) {
-      setTopGenres([]);
-      return;
-    }
-
-    const loadGenres = async () => {
-      try {
-        const movieIds = [...new Set(profile.ratings.map((r) => r.movieId))];
-        const movies = await Promise.all(movieIds.map((id) => getMovieDetails(id)));
-
-        const genreCount: Record<string, number> = {};
-        movies.forEach((movie) => {
-          movie.genres?.forEach((g: { name: string }) => {
-            genreCount[g.name] = (genreCount[g.name] || 0) + 1;
-          });
-        });
-
-        const sorted = Object.entries(genreCount)
-          .map(([name, count]) => ({ name, count }))
-          .sort((a, b) => b.count - a.count)
-          .slice(0, 5);
-
-        setTopGenres(sorted);
-      } catch (err) {
-        console.error("Erro ao carregar gêneros:", err);
-      }
-    };
-
-    loadGenres();
-  }, [profile]);
-
   const handleFollow = async () => {
     if (!username || !profile) return;
 
@@ -117,9 +88,9 @@ const UserProfile = () => {
         setProfile((old) =>
           old
             ? {
-                ...old,
-                followers: newValue ? old.followers + 1 : old.followers - 1,
-              }
+              ...old,
+              followers: newValue ? old.followers + 1 : old.followers - 1,
+            }
             : old,
         );
 

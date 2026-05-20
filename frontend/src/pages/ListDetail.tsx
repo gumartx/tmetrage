@@ -67,6 +67,12 @@ const DATE_PRESETS = [
   { label: "Personalizado", value: "custom" },
 ];
 
+const parseLocalDate = (dateStr: string): Date => {
+  const datePart = dateStr.split("T")[0];
+  const [year, month, day] = datePart.split("-").map(Number);
+  return new Date(year, month - 1, day);
+};
+
 const ListDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -102,7 +108,6 @@ const ListDetail = () => {
 
   const loadList = async () => {
     if (!id) return;
-
     try {
       const data = await getList(id);
       setList(data);
@@ -142,7 +147,6 @@ const ListDetail = () => {
 
   useEffect(() => {
     if (!list?.movies) return;
-
     async function fetchRatings() {
       try {
         const userRatings = await getMovieRatingsList(list.id);
@@ -155,16 +159,13 @@ const ListDetail = () => {
         console.error("Erro ao carregar avaliações:", err);
       }
     }
-
     fetchRatings();
   }, [list]);
 
   useEffect(() => {
     if (!list?.movies) return;
-
     async function fetchGenres() {
       const map: Record<number, number[]> = {};
-
       await Promise.all(
         list!.movies.map(async (movie) => {
           try {
@@ -175,16 +176,13 @@ const ListDetail = () => {
           }
         }),
       );
-
       setMovieGenres(map);
     }
-
     fetchGenres();
   }, [list]);
 
   useEffect(() => {
     if (!list?.id) return;
-
     const loadShared = async () => {
       try {
         const data = await getSharedListDetail(list.id);
@@ -193,13 +191,11 @@ const ListDetail = () => {
         console.error(err);
       }
     };
-
     loadShared();
   }, [list?.id]);
 
   const getMovieSharedRatings = (movieId: number) => {
     if (!sharedList?.ratings) return [];
-
     return sharedList.ratings.filter((r) => r.movieId === movieId);
   };
 
@@ -211,14 +207,11 @@ const ListDetail = () => {
 
   const sharedUsers = useMemo(() => {
     if (!sharedList?.sharedTo) return [];
-
     const map = new Map();
-
     if (sharedList.sharedBy) {
       const normalize = (p?: string | null) => p?.replace(/^@/, "").toLowerCase() ?? "";
       const isOwner =
         normalize(sharedList.sharedBy.profileName) === normalize(currentUser?.profileName);
-
       if (!isOwner) {
         map.set(sharedList.sharedBy.profileName, {
           profileName: sharedList.sharedBy.profileName,
@@ -227,7 +220,6 @@ const ListDetail = () => {
         });
       }
     }
-
     sharedList.sharedTo.forEach((r) => {
       if (!map.has(r.profileName)) {
         map.set(r.profileName, {
@@ -237,18 +229,14 @@ const ListDetail = () => {
         });
       }
     });
-
     return Array.from(map.values());
   }, [sharedList, currentUser]);
 
   const filteredFollowing = useMemo(() => {
     if (!list) return [];
-
     const sharedSet = new Set(sharedUsers.map((u) => u.profileName));
     const availableUsers = following.filter((u) => !sharedSet.has(u.profileName));
-
     if (!shareSearch.trim()) return availableUsers;
-
     const q = shareSearch.toLowerCase();
     return availableUsers.filter(
       (u) => u.name.toLowerCase().includes(q) || u.profileName.toLowerCase().includes(q),
@@ -257,15 +245,11 @@ const ListDetail = () => {
 
   const handleShare = async () => {
     if (selectedUsers.length === 0 || !list) return;
-
     try {
       await shareList(list.id, selectedUsers);
-
       const updatedShared = await getSharedListDetail(list.id);
-
       setSharedList(updatedShared);
       setList(updatedShared.list);
-
       setSelectedUsers([]);
       setShareSearch("");
       setShowShare(false);
@@ -343,7 +327,6 @@ const ListDetail = () => {
   const genreMoviesMap = useMemo(() => {
     if (!list || !genres) return new Map<string, string[]>();
     const map = new Map<string, string[]>();
-
     list.movies.forEach((movie) => {
       (movieGenres[movie.id] || []).forEach((gid) => {
         const genreName = genres.find((g) => g.id === gid)?.name;
@@ -352,7 +335,6 @@ const ListDetail = () => {
         map.get(genreName)!.push(movie.title);
       });
     });
-
     return map;
   }, [list, genres, movieGenres]);
 
@@ -363,22 +345,23 @@ const ListDetail = () => {
     if (datePreset === "custom") return { from: dateFrom, to: dateTo };
     if (datePreset === "all") return {};
     const now = new Date();
-    const from = new Date();
+    const todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const from = new Date(todayMidnight);
     switch (datePreset) {
       case "7d":
-        from.setDate(now.getDate() - 7);
+        from.setDate(todayMidnight.getDate() - 7);
         break;
       case "30d":
-        from.setDate(now.getDate() - 30);
+        from.setDate(todayMidnight.getDate() - 30);
         break;
       case "90d":
-        from.setDate(now.getDate() - 90);
+        from.setDate(todayMidnight.getDate() - 90);
         break;
       case "1y":
-        from.setFullYear(now.getFullYear() - 1);
+        from.setFullYear(todayMidnight.getFullYear() - 1);
         break;
     }
-    return { from, to: now };
+    return { from, to: todayMidnight };
   };
 
   const filteredMovies = useMemo(() => {
@@ -404,7 +387,7 @@ const ListDetail = () => {
       }
       if (datePreset !== "all" && rating?.createdAt) {
         const range = getDateRange();
-        const ratingDate = new Date(rating.createdAt + "T00:00:00");
+        const ratingDate = parseLocalDate(rating.createdAt);
         if (range.from) {
           const from = new Date(range.from);
           from.setHours(0, 0, 0, 0);
@@ -412,7 +395,7 @@ const ListDetail = () => {
         }
         if (range.to) {
           const to = new Date(range.to);
-          to.setHours(0, 0, 0, 0);
+          to.setHours(23, 59, 59, 999);
           if (ratingDate > to) return false;
         }
       } else if (datePreset !== "all" && !rating?.createdAt) {
@@ -523,12 +506,21 @@ const ListDetail = () => {
                 </span>
               )}
             </span>
-            <Link
-              to={`/usuario/${sharedList.sharedBy.profileName}`}
-              className="text-xs text-muted-foreground hover:text-primary transition-colors"
-            >
-              {sharedList.sharedBy.profileName}
-            </Link>
+            {(() => {
+              const normalize = (p?: string | null) =>
+                p?.replace(/^@/, "").toLowerCase() ?? "";
+              const isOwner =
+                normalize(sharedList.sharedBy.profileName) ===
+                normalize(currentUser?.profileName);
+              return (
+                <Link
+                  to={isOwner ? "/perfil" : `/usuario/${sharedList.sharedBy.profileName}`}
+                  className="text-xs text-muted-foreground hover:text-primary transition-colors"
+                >
+                  {sharedList.sharedBy.profileName}
+                </Link>
+              );
+            })()}
           </div>
         )}
 
@@ -617,7 +609,6 @@ const ListDetail = () => {
                                 const genreName = payload[0].name as string;
                                 const count = payload[0].value as number;
                                 const movies = genreMoviesMap.get(genreName) || [];
-
                                 return (
                                   <div className="max-w-[min(260px,calc(100vw-3rem))] rounded-lg border border-border bg-popover p-3 text-popover-foreground shadow-xl">
                                     <p className="mb-2 break-words text-sm font-semibold">
@@ -852,7 +843,6 @@ const ListDetail = () => {
                                 </span>
                               )}
                             </div>
-
                             <div className="flex-1 min-w-0">
                               <p className="text-sm font-medium text-card-foreground truncate">
                                 {user.profileName}
@@ -1098,7 +1088,7 @@ const ListDetail = () => {
                   if (v !== "all") setUserFilter("all");
                 }}
               >
-                <SelectTrigger className="min-w-0 flex-1 basis-[calc(50%-0.5rem)] sm:basis-[180px] sm:flex-none sm:w-[180px]">
+                <SelectTrigger className="min-w-0 w-full basis-full sm:basis-[180px] sm:flex-none sm:w-[180px]">
                   <CalendarIcon className="h-4 w-4 mr-2 text-muted-foreground shrink-0" />
                   <SelectValue placeholder="Período" />
                 </SelectTrigger>
@@ -1137,18 +1127,20 @@ const ListDetail = () => {
             </div>
 
             {datePreset === "custom" && (
-              <div className="grid grid-cols-1 items-center gap-3 sm:grid-cols-[180px_auto_180px_auto]">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
                       className={cn(
-                        "w-full justify-start text-left font-normal sm:w-[180px]",
+                        "flex-1 basis-[calc(50%-0.5rem)] justify-start text-left font-normal sm:flex-none sm:w-[180px]",
                         !dateFrom && "text-muted-foreground",
                       )}
                     >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {dateFrom ? format(dateFrom, "dd/MM/yyyy") : "Data inicial"}
+                      <CalendarIcon className="mr-2 h-4 w-4 shrink-0" />
+                      <span className="truncate">
+                        {dateFrom ? format(dateFrom, "dd/MM/yyyy") : "Data inicial"}
+                      </span>
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
@@ -1162,18 +1154,22 @@ const ListDetail = () => {
                     />
                   </PopoverContent>
                 </Popover>
-                <span className="text-sm text-muted-foreground">até</span>
+
+                <span className="text-sm text-muted-foreground shrink-0">até</span>
+
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
                       className={cn(
-                        "w-full justify-start text-left font-normal sm:w-[180px]",
+                        "flex-1 basis-[calc(50%-0.5rem)] justify-start text-left font-normal sm:flex-none sm:w-[180px]",
                         !dateTo && "text-muted-foreground",
                       )}
                     >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {dateTo ? format(dateTo, "dd/MM/yyyy") : "Data final"}
+                      <CalendarIcon className="mr-2 h-4 w-4 shrink-0" />
+                      <span className="truncate">
+                        {dateTo ? format(dateTo, "dd/MM/yyyy") : "Data final"}
+                      </span>
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
@@ -1187,10 +1183,12 @@ const ListDetail = () => {
                     />
                   </PopoverContent>
                 </Popover>
+
                 {(dateFrom || dateTo) && (
                   <Button
                     variant="ghost"
                     size="sm"
+                    className="shrink-0"
                     onClick={() => {
                       setDateFrom(undefined);
                       setDateTo(undefined);
@@ -1222,12 +1220,12 @@ const ListDetail = () => {
             </p>
           </div>
         ) : (
-          <div className="mt-8 grid grid-cols-[repeat(auto-fit,minmax(140px,1fr))] gap-4 sm:gap-5 xl:grid-cols-6">
+          <div className="mt-8 grid grid-cols-2 gap-3 xs:grid-cols-3 sm:grid-cols-3 sm:gap-4 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-5">
             {filteredMovies.map((movie) => {
               const url = getPosterUrl(movie.poster_path);
               const rating = movieRatings[movie.id];
               const ratingDate = rating?.createdAt
-                ? new Date(rating.createdAt + "T00:00:00").toLocaleDateString("pt-BR", {
+                ? parseLocalDate(rating.createdAt).toLocaleDateString("pt-BR", {
                     day: "2-digit",
                     month: "short",
                     year: "numeric",
@@ -1251,7 +1249,7 @@ const ListDetail = () => {
                   className="group relative overflow-visible rounded-lg border border-border bg-card animate-fade-in"
                 >
                   <Link to={`/movie/${movie.id}`} className="block">
-                    <div className="aspect-[2/3] overflow-hidden">
+                    <div className="aspect-[2/3] overflow-hidden rounded-t-lg">
                       {url ? (
                         <img
                           src={url}
@@ -1265,8 +1263,8 @@ const ListDetail = () => {
                         </div>
                       )}
                     </div>
-                    <div className="space-y-1.5 p-3">
-                      <h3 className="line-clamp-2 min-h-[2.5rem] text-sm font-semibold leading-5 text-card-foreground">
+                    <div className="space-y-1.5 p-2 sm:p-3">
+                      <h3 className="line-clamp-2 min-h-[2.25rem] text-xs font-semibold leading-4 text-card-foreground sm:min-h-[2.5rem] sm:text-sm sm:leading-5">
                         {movie.title}
                       </h3>
 
@@ -1294,8 +1292,6 @@ const ListDetail = () => {
                                     </div>
                                   )}
                                 </Link>
-
-                                {/* Tooltip */}
                                 <div
                                   className="
               pointer-events-none
@@ -1351,7 +1347,6 @@ const ListDetail = () => {
                                     </div>
                                   )}
                                 </Link>
-                                {/* Tooltip */}
                                 <div
                                   className="
               pointer-events-none
@@ -1372,18 +1367,18 @@ const ListDetail = () => {
                             {[1, 2, 3, 4, 5].map((s) => (
                               <Star
                                 key={s}
-                                className={`h-3.5 w-3.5 ${s <= rating.rating ? "fill-star text-star" : "fill-transparent text-star-empty"}`}
+                                className={`h-3 w-3 sm:h-3.5 sm:w-3.5 ${s <= rating.rating ? "fill-star text-star" : "fill-transparent text-star-empty"}`}
                               />
                             ))}
                           </div>
                           {ratingDate && (
-                            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                            <div className="flex items-center gap-1 text-[10px] sm:text-xs text-muted-foreground">
                               <CalendarIcon className="h-3 w-3" />
                               <span className="truncate">{ratingDate}</span>
                             </div>
                           )}
                           {rating.platform && (
-                            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                            <div className="flex items-center gap-1.5 text-[10px] sm:text-xs text-muted-foreground">
                               <PlatformBadge value={rating.platform} />
                               <span className="truncate">
                                 {PLATFORMS.find((p) => p.value === rating.platform)?.label ||

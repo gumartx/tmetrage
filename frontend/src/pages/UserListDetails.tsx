@@ -115,7 +115,6 @@ const UserListDetail = () => {
   const genreMoviesMap = useMemo(() => {
     if (!list || !genres) return new Map<string, string[]>();
     const map = new Map<string, string[]>();
-
     list.movies.forEach((movie) => {
       (movieGenres[movie.id] || []).forEach((gid) => {
         const genreName = genres.find((g) => g.id === gid)?.name;
@@ -124,7 +123,6 @@ const UserListDetail = () => {
         map.get(genreName)!.push(movie.title);
       });
     });
-
     return map;
   }, [list, genres, movieGenres]);
 
@@ -289,7 +287,6 @@ const UserListDetail = () => {
                               const genreName = payload[0].name as string;
                               const count = payload[0].value as number;
                               const movies = genreMoviesMap.get(genreName) || [];
-
                               return (
                                 <div className="max-w-[min(260px,calc(100vw-3rem))] rounded-lg border border-border bg-popover p-3 text-popover-foreground shadow-xl">
                                   <p className="mb-2 break-words text-sm font-semibold">
@@ -417,7 +414,8 @@ const UserListDetail = () => {
             </p>
           </div>
         ) : (
-          <div className="mt-8 grid grid-cols-[repeat(auto-fit,minmax(140px,1fr))] gap-4 sm:gap-5 xl:grid-cols-6">
+          // ✅ Grid responsivo melhorado
+          <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7">
             {filteredMovies.map((movie) => {
               const url = getPosterUrl(movie.poster_path);
               return (
@@ -440,8 +438,8 @@ const UserListDetail = () => {
                       </div>
                     )}
                   </div>
-                  <div className="p-3 space-y-1.5">
-                    <h3 className="line-clamp-2 min-h-[2.5rem] text-sm font-semibold leading-5 text-card-foreground">
+                  <div className="p-2 space-y-1.5 sm:p-3">
+                    <h3 className="line-clamp-2 min-h-[2.25rem] text-xs font-semibold leading-4 text-card-foreground sm:min-h-[2.5rem] sm:text-sm sm:leading-5">
                       {movie.title}
                     </h3>
                     {movie.rating != null && movie.rating > 0 ? (
@@ -449,7 +447,7 @@ const UserListDetail = () => {
                         {[1, 2, 3, 4, 5].map((s) => (
                           <Star
                             key={s}
-                            className={`h-3.5 w-3.5 ${
+                            className={`h-3 w-3 sm:h-3.5 sm:w-3.5 ${
                               s <= movie.rating!
                                 ? "fill-star text-star"
                                 : "fill-transparent text-star-empty"
@@ -458,7 +456,7 @@ const UserListDetail = () => {
                         ))}
                       </div>
                     ) : (
-                      <p className="text-xs text-muted-foreground">Sem avaliação</p>
+                      <p className="text-[10px] sm:text-xs text-muted-foreground">Sem avaliação</p>
                     )}
                   </div>
                 </Link>

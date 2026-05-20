@@ -2,6 +2,8 @@ package com.gusmarg.tmetrage.dto;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import com.gusmarg.tmetrage.entities.User;
 
@@ -19,8 +21,6 @@ public class UserDetailsDTO extends UserDTO {
 	private String email;
 	private Integer totalLists;
 	private List<TopGenreDTO> topGenres;
-	private List<RatingDTO> ratings;
-	private List<ReviewDTO> reviews;
 	private Boolean isFollowing;
 	private List<MovieDTO> favoriteMovies;
 
@@ -29,16 +29,19 @@ public class UserDetailsDTO extends UserDTO {
 		this.email = entity.getEmail();
 		this.totalLists = entity.getAmountLists();
 		this.topGenres = new ArrayList<>();
-		ratings = entity
-				.getRatings().stream().map(r -> new RatingDTO(r.getMovie().getId(), r.getMovie().getTitle(),
-						r.getMovie().getPosterPath(), r.getScore(), r.getCreatedAt()))
-				.toList();
-		reviews = entity.getComments().stream().map(c -> new ReviewDTO(c.getId(), c.getMovie().getId(), c.getMovie().getTitle(),
-				c.getMovie().getPosterPath(), c.getMessage(), c.getCreatedAt())).toList();
 		
 		this.favoriteMovies = entity.getFavoriteMovies().stream()
 			    .map(m -> new MovieDTO(m))
 			    .toList();
+		
+		this.topGenres = entity.getRatings().stream()
+		        .flatMap(r -> r.getMovie().getGenres().stream())
+		        .collect(Collectors.groupingBy(g -> g.getName(), Collectors.counting()))
+		        .entrySet().stream()
+		        .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
+		        .limit(5)
+		        .map(e -> new TopGenreDTO(e.getKey(), e.getValue().intValue()))
+		        .toList();
 	}
 
 	public UserDetailsDTO(User entity) {
