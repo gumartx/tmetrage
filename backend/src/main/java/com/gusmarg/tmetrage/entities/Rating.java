@@ -1,6 +1,7 @@
 package com.gusmarg.tmetrage.entities;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
 
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -55,6 +56,6 @@ public class Rating {
 
 	@PrePersist
 	public void setCreationDate() {
-		createdAt = LocalDate.now();
+		createdAt = LocalDate.now(ZoneId.of("America/Sao_Paulo"));
 	}
 }
