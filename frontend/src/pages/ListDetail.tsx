@@ -963,7 +963,7 @@ const ListDetail = () => {
                   });
                 }}
                 title="Buscar por título"
-                className="shrink-0"
+                className="shrink-0 transition-opacity"
               >
                 <Search className="h-4 w-4" />
               </Button>
@@ -1002,7 +1002,7 @@ const ListDetail = () => {
                   if (v !== "all") setUserFilter("all");
                 }}
               >
-                <SelectTrigger className="min-w-0 flex-1 basis-[calc(50%-0.5rem)] sm:basis-[180px] sm:flex-none sm:w-[180px]">
+                <SelectTrigger className={cn("min-w-0 flex-1 basis-[calc(50%-0.5rem)] sm:basis-[180px] sm:flex-none sm:w-[180px] transition-opacity", userFilter !== "all" && "opacity-40")}>
                   <Tv className="h-4 w-4 mr-2 text-muted-foreground shrink-0" />
                   <SelectValue placeholder="Plataforma" />
                 </SelectTrigger>
@@ -1088,7 +1088,7 @@ const ListDetail = () => {
                   if (v !== "all") setUserFilter("all");
                 }}
               >
-                <SelectTrigger className="min-w-0 w-full basis-full sm:basis-[180px] sm:flex-none sm:w-[180px]">
+                <SelectTrigger className={cn("min-w-0 w-full basis-full sm:basis-[180px] sm:flex-none sm:w-[180px] transition-opacity", userFilter !== "all" && "opacity-40")}>
                   <CalendarIcon className="h-4 w-4 mr-2 text-muted-foreground shrink-0" />
                   <SelectValue placeholder="Período" />
                 </SelectTrigger>
@@ -1108,7 +1108,7 @@ const ListDetail = () => {
                     prev === "none" ? "asc" : prev === "asc" ? "desc" : "none",
                   )
                 }
-                className="shrink-0"
+                className={cn("shrink-0 transition-opacity", userFilter !== "all" && "opacity-40")}
                 title={
                   sortOrder === "asc"
                     ? "Ordem alfabética (A-Z)"
@@ -1127,7 +1127,7 @@ const ListDetail = () => {
             </div>
 
             {datePreset === "custom" && (
-              <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+              <div className={cn("flex flex-wrap items-center gap-2 sm:gap-3 transition-opacity", userFilter !== "all" && "opacity-40")}>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
