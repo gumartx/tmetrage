@@ -1108,7 +1108,7 @@ const ListDetail = () => {
                     prev === "none" ? "asc" : prev === "asc" ? "desc" : "none",
                   )
                 }
-                className={cn("shrink-0 transition-opacity", userFilter !== "all" && "opacity-40")}
+                className="shrink-0"
                 title={
                   sortOrder === "asc"
                     ? "Ordem alfabética (A-Z)"
