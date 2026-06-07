@@ -111,6 +111,8 @@ public class RatingService {
 
 		User user = userRepository.findByProfileName(profileName);
 
+		pageable = translateSort(pageable);
+		
 		LocalDate startDate = null;
 		LocalDate endDate = null;
 
